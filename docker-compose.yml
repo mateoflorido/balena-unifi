@@ -1,0 +1,50 @@
+version: '2.1'
+
+volumes: 
+    pihole_config:
+    dnsmasq_config:
+    dnscrypt_config:
+    unifi_data:
+    unifi-config:
+    unifi-log:
+    unifi-log2:
+    unifi-run:
+    unifi-run2:
+    unifi-work:
+    
+services: 
+    pihole:
+        build: ./pihole
+        privileged: true
+        volumes: 
+            - 'pihole_config:/etc/pihole'
+            - 'dnsmasq_config:/etc/dnsmasq.d'
+        dns:
+            - '127.0.0.1'
+            - '1.1.1.1'
+        network_mode: host
+
+    dnscrypt-proxy:
+        build: ./dnscrypt-proxy
+        volumes: 
+            - 'dnscrypt_config:/config'
+        ports:
+            - '5053:5053/udp'
+    unifi:
+        image: ryansch/unifi-rpi:5.12.66-arm64v8
+        ports:
+            - "3478:3478/udp"
+            - "6789:6789"
+            - "8080-8081:8080-8081"
+            - "8443:8443"
+            - "8843:8843"
+            - "8880:8880"
+            - "10001:10001/udp"
+        volumes:
+            - 'unifi-config:/var/lib/unifi'
+            - 'unifi-log:/usr/lib/unifi/logs'
+            - 'unifi-log2:/var/log/unifi'
+            - 'unifi-run:/usr/lib/unifi/run'
+            - 'unifi-run2:/run/unifi'
+            - 'unifi-work:/usr/lib/unifi/work'
+        restart: unless-stopped
